@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <style>
+      .bg { fill: #000000; }
+      .letter { fill: white; font-family: Georgia, serif; font-weight: bold; font-size: 384px; text-anchor: middle; dominant-baseline: central; }
+    </style>
+  </defs>
+  
+  <!-- Rounded rectangle background -->
+  <rect x="0" y="0" width="512" height="512" rx="51.2" ry="51.2" class="bg"/>
+  
+  <!-- "C" letter -->
+  <text x="256" y="256" class="letter">C</text>
+</svg> 

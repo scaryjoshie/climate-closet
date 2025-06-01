@@ -46,6 +46,21 @@ export default function CategoryView({ category, onBack, onAddItem, onEditItem }
     "accessory": "accessory"
   }
 
+  // Reverse mapping for display names
+  const displayNameMap: { [key: string]: string } = {
+    "sweater": "Sweaters & Hoodies",
+    "top": "Shirts & Tops",
+    "jacket": "Jackets",
+    "lower": "Pants & Other Lower",
+    "shoe": "Shoes & Footwear",
+    "accessory": "Accessories"
+  }
+
+  // Get the proper display name for the title
+  const getDisplayName = (category: string): string => {
+    return displayNameMap[category] || category
+  }
+
   useEffect(() => {
     const loadItems = async () => {
       try {
@@ -93,7 +108,7 @@ export default function CategoryView({ category, onBack, onAddItem, onEditItem }
             <button onClick={onBack} className="p-2 -ml-2 mr-2">
               <ArrowLeft className="w-6 h-6 text-stone-600" />
             </button>
-            <h1 className="box-title text-3xl tracking-wide">{category}</h1>
+            <h1 className="box-title text-3xl tracking-wide">{getDisplayName(category)}</h1>
           </div>
           <button
             onClick={onAddItem}
@@ -145,7 +160,7 @@ export default function CategoryView({ category, onBack, onAddItem, onEditItem }
             ))
           ) : (
             <div className="glass-card rounded-3xl p-8 text-center">
-              <p className="text-lg text-stone-600 font-light">No items in {category.toLowerCase()} yet</p>
+              <p className="text-lg text-stone-600 font-light">No items in {getDisplayName(category).toLowerCase()} yet</p>
               <p className="text-sm text-stone-500 mt-2">Tap the + button to add your first item</p>
             </div>
           )}
