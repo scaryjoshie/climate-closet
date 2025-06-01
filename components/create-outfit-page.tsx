@@ -59,11 +59,11 @@ export default function CreateOutfitPage({ onBack, onOutfitCreated, selectedDate
             onClick={() => onSelect(option.id)}
             className={`
               w-full glass-card rounded-2xl p-4 text-left transition-all duration-200
-              ${selected === option.id ? "bg-stone-600 text-white" : "hover:bg-white/40"}
+              ${selected === option.id ? "bg-stone-800 text-white" : "hover:bg-white/40"}
             `}
           >
             <div className="font-medium">{option.label}</div>
-            <div className={`text-sm ${selected === option.id ? "text-white/90" : "text-stone-600"}`}>
+            <div className={`text-sm ${selected === option.id ? "text-gray-200" : "text-stone-600"}`}>
               {option.description}
             </div>
           </button>
@@ -92,11 +92,11 @@ export default function CreateOutfitPage({ onBack, onOutfitCreated, selectedDate
             onClick={() => onToggle(option.id)}
             className={`
               w-full glass-card rounded-2xl p-4 text-left transition-all duration-200
-              ${selected.includes(option.id) ? "bg-stone-600 text-white" : "hover:bg-white/40"}
+              ${selected.includes(option.id) ? "bg-stone-800 text-white" : "hover:bg-white/40"}
             `}
           >
             <div className="font-medium">{option.label}</div>
-            <div className={`text-sm ${selected.includes(option.id) ? "text-white/90" : "text-stone-600"}`}>
+            <div className={`text-sm ${selected.includes(option.id) ? "text-gray-200" : "text-stone-600"}`}>
               {option.description}
             </div>
           </button>

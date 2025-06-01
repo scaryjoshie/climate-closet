@@ -1,4 +1,4 @@
-const CACHE_NAME = "stylesync-v1"
+const CACHE_NAME = "climate-closet-v1"
 const urlsToCache = ["/", "/manifest.json", "/icons/icon-192x192.png", "/icons/icon-512x512.png"]
 
 // Install event - cache resources

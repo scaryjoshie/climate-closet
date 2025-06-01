@@ -371,9 +371,6 @@ export default function WeatherApp() {
           <div className="max-w-sm mx-auto">
             {/* Header with title and location */}
             <div className="pt-6 pb-4 px-4">
-              <h1 className="elegant-title text-5xl font-bold tracking-wide text-left mb-2">
-                Climate Closet
-              </h1>
               <h2 className="sophisticated-body text-lg text-left opacity-75">Evanston, IL</h2>
             </div>
 
@@ -398,7 +395,7 @@ export default function WeatherApp() {
                   <div className="flex mb-4">
                     {/* Temperature on the left - taking full half */}
                     <div className="w-1/2 flex justify-center">
-                      <div className="font-sans text-9xl font-light leading-none tracking-tight" style={{ color: '#262626' }}>
+                      <div className="font-sans text-8xl font-light leading-none tracking-tight" style={{ color: '#262626' }}>
                         {currentWeather.temperature}°
                       </div>
                     </div>

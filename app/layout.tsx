@@ -42,7 +42,7 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: "#D2B48C",
+  themeColor: "#E5D5C7",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -79,7 +79,7 @@ export default function RootLayout({
         <meta name="application-name" content="Climate Closet" />
 
         {/* Microsoft Tiles */}
-        <meta name="msapplication-TileColor" content="#D2B48C" />
+        <meta name="msapplication-TileColor" content="#E5D5C7" />
         <meta name="msapplication-TileImage" content="/icons/icon-144x144.png" />
         <meta name="msapplication-tap-highlight" content="no" />
 

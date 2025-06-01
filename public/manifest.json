@@ -1,11 +1,11 @@
 {
-  "name": "StyleSync - Weather & Fashion",
-  "short_name": "StyleSync",
+  "name": "Climate Closet - Weather & Fashion",
+  "short_name": "Climate Closet",
   "description": "A fashion-forward weather app with clothing suggestions",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#F5F5F4",
-  "theme_color": "#A8A29E",
+  "theme_color": "#E5D5C7",
   "orientation": "portrait-primary",
   "scope": "/",
   "icons": [

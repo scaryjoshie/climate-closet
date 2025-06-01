@@ -135,7 +135,7 @@ export default function AddItemPage({ onBack, selectedCategory, onItemAdded }: A
                     glass-card rounded-2xl p-3 text-center transition-all duration-200
                     ${
                       category === cat.display
-                        ? "bg-stone-600 text-white shadow-inner transform scale-95"
+                        ? "bg-stone-800 text-white shadow-inner transform scale-95"
                         : "hover:bg-stone-200 hover:transform hover:scale-105"
                     }
                   `}
