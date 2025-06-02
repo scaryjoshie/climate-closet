@@ -4,6 +4,7 @@ import { Inter } from "next/font/google"
 import { Playfair_Display } from "next/font/google"
 import "./globals.css"
 import { AuthProvider } from "../contexts/auth-context"
+import { ToastProvider, ToastHost } from "../components/toast"
 
 const inter = Inter({ 
   subsets: ["latin"], 
@@ -109,7 +110,12 @@ export default function RootLayout({
         />
       </head>
       <body className={`${inter.variable} ${playfairDisplay.variable} font-sans`}>
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          <ToastProvider>
+            {children}
+            <ToastHost />
+          </ToastProvider>
+        </AuthProvider>
       </body>
     </html>
   )

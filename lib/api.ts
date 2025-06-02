@@ -74,6 +74,18 @@ export class ClimateClosetAPI {
     return this.handleResponse(response)
   }
 
+  // Weather for specific date (no auth required)
+  async getWeatherForDate(date: string) {
+    const response = await fetch(`${API_BASE_URL}/get_weather_for_date`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ date }),
+    })
+    return this.handleResponse(response)
+  }
+
   // Outfit creation
   async createOutfit(outfitData: OutfitData) {
     if (!(await this.isAuthenticated())) throw new Error("Authentication required")
@@ -195,6 +207,49 @@ export class ClimateClosetAPI {
       method: "POST",
       headers: await this.getAuthHeaders(),
       body: JSON.stringify({ id: itemId }),
+    })
+    return this.handleResponse(response)
+  }
+
+  // Update outfit
+  async updateOutfit(outfitData: any) {
+    if (!(await this.isAuthenticated())) throw new Error("Authentication required")
+
+    const response = await fetch(`${API_BASE_URL}/update_outfit`, {
+      method: "POST",
+      headers: await this.getAuthHeaders(),
+      body: JSON.stringify(outfitData),
+    })
+    return this.handleResponse(response)
+  }
+
+  // Delete outfit
+  async deleteOutfit(outfitId: string) {
+    if (!(await this.isAuthenticated())) throw new Error("Authentication required")
+
+    const response = await fetch(`${API_BASE_URL}/delete_outfit`, {
+      method: "POST",
+      headers: await this.getAuthHeaders(),
+      body: JSON.stringify({ id: outfitId }),
+    })
+    return this.handleResponse(response)
+  }
+
+  // Reshuffle outfit
+  async reshuffleOutfit(reshuffleData: {
+    date: string
+    activity_level: string
+    times_of_day: string[]
+    occasion: string
+    notes: string
+    previous_outfit_items: string[]
+  }) {
+    if (!(await this.isAuthenticated())) throw new Error("Authentication required")
+
+    const response = await fetch(`${API_BASE_URL}/reshuffle_outfit`, {
+      method: "POST",
+      headers: await this.getAuthHeaders(),
+      body: JSON.stringify(reshuffleData),
     })
     return this.handleResponse(response)
   }

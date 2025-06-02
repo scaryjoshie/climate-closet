@@ -64,13 +64,15 @@ export default function WardrobePage({ onCategoryClick, onAddItem, refreshTrigge
           // Keep default zero counts if wardrobe loading fails
         }
         
-        // Load analytics only if refreshTrigger changed or first load
+        // Load analytics - only force recalculate if refreshTrigger indicates wardrobe change
         try {
+          // Force recalculate only if refreshTrigger > 0 (indicating item was added/removed)
           const shouldForceRecalculate = typeof refreshTrigger === 'number' && refreshTrigger > 0
           const analyticsResult = await api.getWardrobeAnalytics(shouldForceRecalculate)
           if (analyticsResult.success) {
             setAnalytics(analyticsResult.analytics)
-            console.log(`Analytics ${analyticsResult.cached ? 'loaded from cache' : 'recalculated'}`)
+            const cacheStatus = analyticsResult.cached ? 'loaded from cache' : 'recalculated'
+            console.log(`Analytics ${cacheStatus}`)
           }
         } catch (analyticsError) {
           console.error("Failed to load analytics:", analyticsError)
@@ -84,7 +86,7 @@ export default function WardrobePage({ onCategoryClick, onAddItem, refreshTrigge
     }
 
     loadData()
-  }, [refreshTrigger]) // Only reload when refreshTrigger changes
+  }, [refreshTrigger]) // Reload when refreshTrigger changes
 
   // Always show gauges with fallback values
   const weatherSuitability = analytics?.weather_preparedness_score ?? 50

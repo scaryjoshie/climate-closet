@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { ArrowLeft, Check } from "lucide-react"
 import { api } from "@/lib/api"
 import TextareaAutosize from 'react-textarea-autosize'
+import { useToast } from "./toast"
 
 interface ItemAnalysisPageProps {
   onBack: () => void
@@ -32,6 +33,9 @@ interface ItemAnalysisPageProps {
 }
 
 export default function ItemAnalysisPage({ onBack, onConfirm, analysisData }: ItemAnalysisPageProps) {
+  // Toast system
+  const { showToast, ToastComponent } = useToast()
+
   // Helper function to convert AI scale (-2 to +2) to frontend scale (1 to 5)
   const convertAIRatingToFrontend = (aiRating: number) => {
     // AI: -2 to +2 maps to Frontend: 1 to 5
@@ -70,6 +74,11 @@ export default function ItemAnalysisPage({ onBack, onConfirm, analysisData }: It
     analysisData?.weather_ratings?.rain !== undefined 
       ? convertAIRatingToFrontend(analysisData.weather_ratings.rain)
       : analysisData?.rainWeather || 3
+  )
+  const [windWeather, setWindWeather] = useState(
+    analysisData?.weather_ratings?.wind !== undefined 
+      ? convertAIRatingToFrontend(analysisData.weather_ratings.wind)
+      : 3
   )
 
   const categories = [
@@ -135,7 +144,7 @@ export default function ItemAnalysisPage({ onBack, onConfirm, analysisData }: It
           cold: convertFrontendRatingToAI(coldWeather),
           hot: convertFrontendRatingToAI(warmWeather),
           rain: convertFrontendRatingToAI(rainWeather),
-          wind: 0 // Default wind rating
+          wind: convertFrontendRatingToAI(windWeather)
         },
         // Pass image as base64 data if available
         ...(analysisData?.image_data && { image_data: analysisData.image_data })
@@ -143,14 +152,18 @@ export default function ItemAnalysisPage({ onBack, onConfirm, analysisData }: It
 
       if (result.success) {
         console.log("Item saved successfully:", result)
+        showToast({ message: "Item added to wardrobe successfully!", type: "success" })
+        onConfirm()
       } else {
         console.error("Failed to save item:", result.error)
+        showToast({ message: "Failed to save item. Please try again later.", type: "error" })
+        onConfirm()
       }
     } catch (error) {
       console.error("Error saving item:", error)
+      showToast({ message: "An error occurred. Please try again later.", type: "error" })
+      onConfirm()
     }
-
-    onConfirm()
   }
 
   const currentCategoryDisplay = categories.find((cat) => cat.api === category)?.display || category
@@ -255,6 +268,11 @@ export default function ItemAnalysisPage({ onBack, onConfirm, analysisData }: It
                 label="Rainy Weather (1=Poor, 5=Excellent)"
                 value={rainWeather}
                 onChange={setRainWeather}
+              />
+              <WeatherRating
+                label="Wind Weather (1=Poor, 5=Excellent)"
+                value={windWeather}
+                onChange={setWindWeather}
               />
             </div>
           </div>

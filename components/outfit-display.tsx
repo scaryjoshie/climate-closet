@@ -1,11 +1,12 @@
 "use client"
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, Shuffle, ChevronDown, ChevronUp } from "lucide-react"
+import { ArrowLeft, Shuffle, ChevronDown, ChevronUp, Sun, Cloud, CloudRain, Trash2 } from "lucide-react"
 import CircularGauge from "./circular-gauge"
 import { api } from "@/lib/api"
 import TextareaAutosize from 'react-textarea-autosize'
 import ImageModal from "./image-modal"
+import { useToast } from "./toast"
 
 interface OutfitDisplayProps {
   date: string
@@ -31,6 +32,9 @@ interface OutfitData {
   weather_match: number
   fashion_score: number
   clothing_items: OutfitItem[]
+  ai_reasoning?: string
+  overall_rating?: number
+  temp_feedback?: string
 }
 
 export default function OutfitDisplay({ date, onBack }: OutfitDisplayProps) {
@@ -39,6 +43,7 @@ export default function OutfitDisplay({ date, onBack }: OutfitDisplayProps) {
   const [feedback, setFeedback] = useState("")
   const [showFeedback, setShowFeedback] = useState(false)
   const [showDayReview, setShowDayReview] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
   // Outfit data state
   const [outfit, setOutfit] = useState<OutfitData | null>(null)
@@ -57,6 +62,14 @@ export default function OutfitDisplay({ date, onBack }: OutfitDisplayProps) {
     imageUrl: "",
     itemName: ""
   })
+
+  // Weather state
+  const [weatherData, setWeatherData] = useState<any>(null)
+  const [isLoadingWeather, setIsLoadingWeather] = useState(true)
+  const [weatherError, setWeatherError] = useState<string | null>(null)
+
+  // Toast system
+  const { showToast, ToastComponent } = useToast()
 
   // Load outfit data when component mounts
   useEffect(() => {
@@ -104,6 +117,45 @@ export default function OutfitDisplay({ date, onBack }: OutfitDisplayProps) {
     }
 
     loadOutfit()
+  }, [date])
+
+  // Load weather data for the outfit date
+  useEffect(() => {
+    const loadWeather = async () => {
+      try {
+        setIsLoadingWeather(true)
+        setWeatherError(null)
+        
+        // Convert date format if needed (from "Month Day, Year" to "YYYY-MM-DD")
+        let apiDate = date
+        try {
+          const parsedDate = new Date(date)
+          if (!isNaN(parsedDate.getTime())) {
+            // Extract year, month, day in local timezone to avoid timezone offset
+            const year = parsedDate.getFullYear()
+            const month = String(parsedDate.getMonth() + 1).padStart(2, '0')
+            const day = String(parsedDate.getDate()).padStart(2, '0')
+            apiDate = `${year}-${month}-${day}`
+          }
+        } catch (e) {
+          console.warn("Date parsing failed, using original:", date)
+        }
+        
+        const weather = await api.getWeatherForDate(apiDate)
+        if (weather.success) {
+          setWeatherData(weather.weather)
+        } else {
+          setWeatherError("Unable to load weather data")
+        }
+      } catch (error) {
+        console.error("Weather error:", error)
+        setWeatherError("Unable to load weather data")
+      } finally {
+        setIsLoadingWeather(false)
+      }
+    }
+
+    loadWeather()
   }, [date])
 
   // Mock scores - replace with real data when available
@@ -217,14 +269,124 @@ export default function OutfitDisplay({ date, onBack }: OutfitDisplayProps) {
     // Handle feedback submission
   }
 
-  const handleSubmitDayReview = () => {
-    console.log({ activityLevel, timeOut, occasion, dayNotes })
-    // Handle day review submission
+  const handleDeleteOutfit = async () => {
+    if (!outfit) return
+    
+    try {
+      const result = await api.deleteOutfit(outfit.id.toString())
+      
+      if (result.success) {
+        showToast({ message: "Outfit deleted successfully!", type: "success" })
+        onBack() // Go back to calendar/previous page
+      } else {
+        showToast({ message: "Failed to delete outfit: " + (result.error || "Unknown error"), type: "error" })
+      }
+    } catch (error) {
+      console.error("Error deleting outfit:", error)
+      showToast({ message: "Failed to delete outfit. Please try again.", type: "error" })
+    }
   }
 
-  const handleReshuffle = () => {
-    console.log("Reshuffling outfit...")
-    // Handle outfit reshuffling
+  const handleSubmitDayReview = async () => {
+    if (!outfit) return
+    
+    try {
+      const updateData = {
+        id: outfit.id,
+        name: outfit.name,
+        activity_level: activityLevel,
+        times_of_day: timeOut,
+        occasion: occasion,
+        notes: dayNotes,
+        overall_rating: outfit.overall_rating,
+        temp_feedback: outfit.temp_feedback
+      }
+      
+      const result = await api.updateOutfit(updateData)
+      
+      if (result.success) {
+        // Update local state to reflect the changes
+        setOutfit(prev => prev ? {
+          ...prev,
+          activity_level: activityLevel,
+          times_of_day: timeOut,
+          occasion: occasion,
+          notes: dayNotes
+        } : null)
+        
+        // Show success feedback
+        showToast({ message: "Preferences saved successfully!", type: "success" })
+        
+        // Optionally collapse the section
+        setShowDayReview(false)
+      } else {
+        showToast({ message: "Failed to save preferences: " + (result.error || "Unknown error"), type: "error" })
+      }
+    } catch (error) {
+      console.error("Error saving preferences:", error)
+      showToast({ message: "Failed to save preferences. Please try again.", type: "error" })
+    }
+  }
+
+  const handleReshuffle = async () => {
+    if (!outfit) return
+    
+    try {
+      // Get current clothing item IDs
+      const currentItemIds = outfit.clothing_items.map(item => item.id.toString())
+      
+      const reshuffleData = {
+        date: outfit.outfit_date,
+        activity_level: activityLevel || outfit.activity_level,
+        times_of_day: timeOut.length > 0 ? timeOut : outfit.times_of_day,
+        occasion: occasion || outfit.occasion,
+        notes: dayNotes || outfit.notes || '',
+        previous_outfit_items: currentItemIds
+      }
+      
+      const result = await api.reshuffleOutfit(reshuffleData)
+      
+      if (result.success) {
+        showToast({ message: "Outfit reshuffled successfully!", type: "success" })
+        
+        // Reload the outfit data to show the new reshuffled outfit without page reload
+        try {
+          // Convert date format if needed (from "Month Day, Year" to "YYYY-MM-DD")
+          let apiDate = date
+          try {
+            const parsedDate = new Date(date)
+            if (!isNaN(parsedDate.getTime())) {
+              // Extract year, month, day in local timezone to avoid timezone offset
+              const year = parsedDate.getFullYear()
+              const month = String(parsedDate.getMonth() + 1).padStart(2, '0')
+              const day = String(parsedDate.getDate()).padStart(2, '0')
+              apiDate = `${year}-${month}-${day}`
+            }
+          } catch (e) {
+            console.warn("Date parsing failed, using original:", date)
+          }
+          
+          const updatedOutfit = await api.getOutfitByDate(apiDate)
+          if (updatedOutfit.success && updatedOutfit.outfit) {
+            setOutfit(updatedOutfit.outfit)
+            // Update form with the refreshed outfit data
+            setActivityLevel(updatedOutfit.outfit.activity_level || "")
+            setTimeOut(updatedOutfit.outfit.times_of_day || [])
+            setOccasion(updatedOutfit.outfit.occasion || "")
+            setDayNotes(updatedOutfit.outfit.notes || "")
+          }
+        } catch (refreshError) {
+          console.error("Error refreshing outfit data:", refreshError)
+          // If refresh fails, show a message but don't fail the whole operation
+          showToast({ message: "Outfit reshuffled, but couldn't refresh display. Please refresh the page to see changes.", type: "error" })
+        }
+      } else {
+        showToast({ message: "Failed to reshuffle outfit: " + (result.error || "Unknown error"), type: "error" })
+      }
+    } catch (error) {
+      console.error("Error reshuffling outfit:", error)
+      showToast({ message: "Failed to reshuffle outfit. Please try again.", type: "error" })
+    }
   }
 
   const handleImageClick = (imageUrl: string, itemName: string) => {
@@ -237,8 +399,66 @@ export default function OutfitDisplay({ date, onBack }: OutfitDisplayProps) {
     setModalImage({ isOpen: false, imageUrl: "", itemName: "" })
   }
 
+  // Weather helper functions (copied from weather-app.tsx)
+  const getWeatherIcon = (weather: string) => {
+    switch (weather?.toLowerCase()) {
+      case "sunny":
+      case "clear":
+        return Sun
+      case "cloudy":
+      case "overcast":
+        return Cloud
+      case "rainy":
+      case "rain":
+        return CloudRain
+      default:
+        return Cloud
+    }
+  }
+
+  const getWeatherColor = (weather: string) => {
+    switch (weather?.toLowerCase()) {
+      case "sunny":
+      case "clear":
+        return "text-orange-500"
+      case "rainy":
+      case "rain":
+        return "text-blue-500"
+      default:
+        return "text-gray-600"
+    }
+  }
+
   return (
     <div className="max-w-sm mx-auto">
+      {/* Delete Confirmation Dialog */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="glass-card rounded-2xl p-6 max-w-sm w-full mx-4">
+            <h3 className="box-title text-lg mb-4">Delete Outfit</h3>
+            <p className="text-slate-600 mb-6">
+              Are you sure you want to delete "{outfit?.name}"? This action cannot be undone.
+            </p>
+            <div className="space-y-3">
+              <Button
+                onClick={handleDeleteOutfit}
+                className="w-full h-12 bg-red-500 text-white hover:bg-red-600 rounded-full font-light text-base transition-all duration-200"
+              >
+                <Trash2 className="w-4 h-4 mr-3 stroke-1" />
+                Yes, Delete Outfit
+              </Button>
+              <Button
+                onClick={() => setShowDeleteConfirm(false)}
+                variant="outline"
+                className="w-full h-12 border-stone-400 text-stone-600 hover:bg-stone-100 rounded-full font-light text-base transition-all duration-200"
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="pt-12 pb-8 px-4">
         <div className="flex items-center mb-6">
@@ -310,18 +530,101 @@ export default function OutfitDisplay({ date, onBack }: OutfitDisplayProps) {
             <CircularGauge value={fashionScore} label="Fashion Score" color="#5D4037" />
           </div>
         </div>
+
+        {/* AI Reasoning */}
+        {outfit.ai_reasoning && (
+          <div className="glass-card rounded-2xl p-6 mb-6">
+            <h3 className="box-title text-lg mb-3 tracking-wide">AI Reasoning</h3>
+            <p className="text-sm text-slate-700 leading-relaxed">{outfit.ai_reasoning}</p>
+          </div>
+        )}
+
+        {/* Hourly Weather */}
+        <div className="glass-card rounded-2xl p-6 mb-6">
+          <h3 className="box-title text-lg mb-4 tracking-wide">Weather for This Day</h3>
+          {isLoadingWeather ? (
+            <div className="text-center py-4">
+              <p className="cozy-secondary">Loading weather...</p>
+            </div>
+          ) : weatherError ? (
+            <div className="text-center py-4">
+              <p className="text-red-500 text-sm">{weatherError}</p>
+            </div>
+          ) : weatherData ? (
+            <>
+              {/* Daily Summary */}
+              {weatherData.daily_summary && (
+                <div className="flex items-center justify-center mb-4 p-4 bg-stone-50 rounded-xl">
+                  {(() => {
+                    const WeatherIcon = getWeatherIcon(weatherData.daily_summary.weather)
+                    const weatherColor = getWeatherColor(weatherData.daily_summary.weather)
+                    return <WeatherIcon className={`w-12 h-12 ${weatherColor} stroke-1 mr-4`} />
+                  })()}
+                  <div className="text-center">
+                    <div className="text-lg font-medium text-foreground capitalize">
+                      {weatherData.daily_summary.weather}
+                    </div>
+                    <div className="cozy-secondary text-sm">
+                      High {weatherData.daily_summary.high}° • Low {weatherData.daily_summary.low}°
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {/* Hourly Forecast */}
+              {weatherData.hourly_forecast && weatherData.hourly_forecast.length > 0 ? (
+                <div className="overflow-x-auto scrollbar-hide">
+                  <div className="flex gap-2 pb-2 min-w-max">
+                    {weatherData.hourly_forecast.map((hour: any, index: number) => {
+                      const WeatherIcon = getWeatherIcon(hour.weather)
+                      const weatherColor = getWeatherColor(hour.weather)
+                      return (
+                        <div
+                          key={index}
+                          className="flex flex-col items-center min-w-[70px] space-y-1 flex-shrink-0"
+                        >
+                          <span className="cozy-secondary text-base font-medium">{hour.time.charAt(0).toUpperCase() + hour.time.slice(1)}</span>
+                          <WeatherIcon className={`w-8 h-8 ${weatherColor} stroke-1`} />
+                          <span className="sophisticated-body text-lg font-medium">{hour.temp}°</span>
+                          <span className="warm-muted text-sm font-light">{hour.chance_precip || 0}%</span>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-4">
+                  <p className="cozy-secondary text-sm">Hourly forecast not available for this date</p>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="text-center py-4">
+              <p className="cozy-secondary text-sm">Weather forecast not available for this date</p>
+            </div>
+          )}
+        </div>
           </>
         )}
 
-        {/* Reshuffle Button */}
-        <div className="mb-6">
+        {/* Action Buttons */}
+        <div className="mb-6 space-y-3">
           <Button
             onClick={handleReshuffle}
             variant="outline"
-            className="w-full h-12 border-stone-400 text-stone-600 hover:bg-stone-100 font-light text-base rounded-2xl transition-colors duration-200"
+            className="w-full h-12 border-stone-400 text-stone-600 hover:bg-stone-100 font-light text-base rounded-full transition-colors duration-200"
           >
             <Shuffle className="w-4 h-4 mr-3 stroke-1" />
             Reshuffle Outfit
+          </Button>
+          
+          <Button
+            onClick={() => setShowDeleteConfirm(true)}
+            className="cozy-button red-button w-full h-12 text-base"
+            style={{ borderColor: '#dc2626', color: '#dc2626' }}
+          >
+            <Trash2 className="w-4 h-4 mr-3 stroke-1" />
+            Delete Outfit
           </Button>
         </div>
 
@@ -331,7 +634,7 @@ export default function OutfitDisplay({ date, onBack }: OutfitDisplayProps) {
             onClick={() => setShowDayReview(!showDayReview)}
             className="w-full p-6 flex items-center justify-between"
           >
-            <h3 className="box-title text-lg tracking-wide">Your Day</h3>
+            <h3 className="box-title text-lg tracking-wide">Your Preferences</h3>
             {showDayReview ? (
               <ChevronUp className="w-5 h-5 text-slate-600" />
             ) : (

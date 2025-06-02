@@ -6,6 +6,7 @@ import { api } from "@/lib/api"
 import { compressImage, shouldCompressImage, getImageSizeInfo } from "@/lib/image-utils"
 import TextareaAutosize from 'react-textarea-autosize'
 import ImageModal from "./image-modal"
+import { useToast } from "./toast"
 
 interface ItemEditPageProps {
   onBack: () => void
@@ -51,6 +52,9 @@ export default function ItemEditPage({ onBack, item }: ItemEditPageProps) {
     imageUrl: "",
     itemName: ""
   })
+
+  // Toast system
+  const { showToast, ToastComponent } = useToast()
 
   const categories = [
     { display: "Sweaters & Hoodies", api: "sweater" },
@@ -104,14 +108,14 @@ export default function ItemEditPage({ onBack, item }: ItemEditPageProps) {
           setPhotoPreview(e.target?.result as string)
         }
           reader.onerror = () => {
-            alert("Error reading image file. Please try again.")
+            showToast({ message: "Error reading image file. Please try again.", type: "error" })
           }
         reader.readAsDataURL(file)
           
         console.log("New photo captured:", file)
         } catch (error) {
           console.error("Error processing image:", error)
-          alert("Error processing image. Please try again.")
+          showToast({ message: "Error processing image. Please try again.", type: "error" })
         }
       }
     }
@@ -193,14 +197,15 @@ export default function ItemEditPage({ onBack, item }: ItemEditPageProps) {
       
       if (result.success) {
         console.log("Item updated successfully:", result)
-    onBack()
+        showToast({ message: "Item updated successfully!", type: "success" })
+        onBack()
       } else {
         console.error("Failed to update item:", result.error)
-        alert("Failed to update item: " + (result.error || "Unknown error"))
+        showToast({ message: "Failed to update item: " + (result.error || "Unknown error"), type: "error" })
       }
     } catch (error) {
       console.error("Error updating item:", error)
-      alert("Failed to update item. Please try again.")
+      showToast({ message: "Failed to update item. Please try again.", type: "error" })
     }
   }
 
@@ -210,14 +215,15 @@ export default function ItemEditPage({ onBack, item }: ItemEditPageProps) {
       
       if (result.success) {
         console.log("Item deleted successfully:", result)
-    onBack()
+        showToast({ message: "Item deleted successfully!", type: "success" })
+        onBack()
       } else {
         console.error("Failed to delete item:", result.error)
-        alert("Failed to delete item: " + (result.error || "Unknown error"))
+        showToast({ message: "Failed to delete item: " + (result.error || "Unknown error"), type: "error" })
       }
     } catch (error) {
       console.error("Error deleting item:", error)
-      alert("Failed to delete item. Please try again.")
+      showToast({ message: "Failed to delete item. Please try again.", type: "error" })
     }
   }
 
@@ -398,8 +404,8 @@ export default function ItemEditPage({ onBack, item }: ItemEditPageProps) {
             </Button>
             <Button
               onClick={() => setShowDeleteConfirm(true)}
-              variant="outline"
-              className="w-full h-12 border-red-400 text-red-600 hover:bg-red-50 rounded-2xl font-light text-base transition-all duration-200"
+              className="cozy-button red-button w-full h-12 text-base"
+              style={{ borderColor: '#dc2626', color: '#dc2626' }}
             >
               <Trash2 className="w-4 h-4 mr-3 stroke-1" />
               Delete Item

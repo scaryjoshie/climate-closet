@@ -1,9 +1,10 @@
 "use client"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, Camera } from "lucide-react"
+import { ArrowLeft, Camera, Plus } from "lucide-react"
 import { api } from "@/lib/api"
 import { compressImage, shouldCompressImage, getImageSizeInfo } from "@/lib/image-utils"
+import { useToast } from "./toast"
 
 interface AddItemPageProps {
   onBack: () => void
@@ -12,6 +13,9 @@ interface AddItemPageProps {
 }
 
 export default function AddItemPage({ onBack, selectedCategory, onItemAdded }: AddItemPageProps) {
+  // Toast system
+  const { showToast, ToastComponent } = useToast()
+
   const categories = [
     { display: "Sweaters & Hoodies", api: "sweater" },
     { display: "Shirts & Tops", api: "top" },
@@ -62,7 +66,7 @@ export default function AddItemPage({ onBack, selectedCategory, onItemAdded }: A
           setPhotoPreview(e.target?.result as string)
         }
         reader.onerror = () => {
-          alert("Error reading image file. Please try again.")
+          showToast({ message: "Error reading image file. Please try again.", type: "error" })
         }
         reader.readAsDataURL(file)
         console.log("Photo captured:", file)
@@ -99,11 +103,11 @@ export default function AddItemPage({ onBack, selectedCategory, onItemAdded }: A
         onItemAdded(analysisWithImage)
       } else {
         console.error("Analysis failed:", analysisResult.error)
-        alert("Failed to analyze item: " + (analysisResult.error || "Unknown error"))
+        showToast({ message: "Failed to analyze item: " + (analysisResult.error || "Unknown error"), type: "error" })
       }
     } catch (error) {
       console.error("Error analyzing item:", error)
-      alert("Error analyzing item. Please check your connection and try again.")
+      showToast({ message: "Error analyzing item. Please check your connection and try again.", type: "error" })
     }
   }
 
