@@ -198,19 +198,23 @@ export default function CalendarPage({ onGoToOutfit, onCreateOutfit }: CalendarP
             <Button
               variant="outline"
               onClick={handleGoToOutfit}
+              disabled={isLoading}
               className="cozy-button w-full h-14 text-lg"
             >
-              Go to outfit
+              {isLoading ? "Loading..." : "Go to outfit"}
             </Button>
           ) : (
             <div className="space-y-3">
-              <div className="text-center cozy-secondary font-light">No outfit created yet</div>
+              <div className="text-center cozy-secondary font-light">
+                {isLoading ? "Loading..." : "No outfit created yet"}
+              </div>
               <Button
                 variant="outline"
                 onClick={handleCreateOutfit}
-                className="cozy-button w-full h-14 text-lg"
+                disabled={isLoading}
+                className={`cozy-button w-full h-14 text-lg ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
-                Create outfit for this day
+                {isLoading ? "Loading calendar..." : "Create outfit for this day"}
               </Button>
             </div>
           )}

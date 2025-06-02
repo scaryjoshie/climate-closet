@@ -3,6 +3,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Check } from "lucide-react"
 import { api } from "@/lib/api"
+import TextareaAutosize from 'react-textarea-autosize'
 
 interface ItemAnalysisPageProps {
   onBack: () => void
@@ -211,12 +212,13 @@ export default function ItemAnalysisPage({ onBack, onConfirm, analysisData }: It
           {/* Description */}
           <div>
             <h3 className="elegant-title text-lg">Description</h3>
-            <input
-              type="text"
+            <TextareaAutosize
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Color, material, style..."
-              className="w-full p-4 glass-card rounded-2xl border-0 focus:outline-none focus:ring-2 focus:ring-stone-400 placeholder-stone-500"
+              className="w-full p-4 glass-card rounded-2xl border-0 focus:outline-none focus:ring-2 focus:ring-stone-400 placeholder-stone-500 resize-none"
+              minRows={3}
+              maxRows={10}
             />
           </div>
 
@@ -232,7 +234,7 @@ export default function ItemAnalysisPage({ onBack, onConfirm, analysisData }: It
                     glass-card rounded-2xl p-3 text-center transition-all duration-200
                     ${
                       category === cat.api
-                        ? "bg-stone-600 text-white shadow-inner transform scale-95"
+                        ? "selected shadow-inner transform scale-95"
                         : "hover:bg-stone-200 hover:transform hover:scale-105"
                     }
                   `}

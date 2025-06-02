@@ -1,7 +1,9 @@
 "use client"
 import { useState, useEffect } from "react"
+import { Button } from "@/components/ui/button"
 import { ArrowLeft, Plus, Edit } from "lucide-react"
 import { api } from "@/lib/api"
+import ImageModal from "./image-modal"
 
 interface CategoryViewProps {
   category: string
@@ -22,6 +24,13 @@ export default function CategoryView({ category, onBack, onAddItem, onEditItem }
   const [items, setItems] = useState<WardrobeItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  // Image modal state
+  const [modalImage, setModalImage] = useState<{isOpen: boolean, imageUrl: string, itemName: string}>({
+    isOpen: false,
+    imageUrl: "",
+    itemName: ""
+  })
 
   // Category mapping - handle both short and full names
   const categoryMap: { [key: string]: string } = {
@@ -99,6 +108,16 @@ export default function CategoryView({ category, onBack, onAddItem, onEditItem }
     console.log(`Delete item ${itemId}`)
   }
 
+  const handleImageClick = (imageUrl: string, itemName: string) => {
+    if (imageUrl && !imageUrl.includes('👕')) { // Only open modal for actual images, not emoji placeholders
+      setModalImage({ isOpen: true, imageUrl, itemName })
+    }
+  }
+
+  const closeModal = () => {
+    setModalImage({ isOpen: false, imageUrl: "", itemName: "" })
+  }
+
   return (
     <div className="max-w-sm mx-auto">
       {/* Header */}
@@ -137,17 +156,20 @@ export default function CategoryView({ category, onBack, onAddItem, onEditItem }
           ) : items.length > 0 ? (
             items.map((item) => (
               <div key={item.id} className="glass-card rounded-2xl p-4 flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                  <div className="w-20 h-20 bg-white rounded-lg flex items-center justify-center text-3xl overflow-hidden border border-gray-200">
+                <div className="flex items-center space-x-6">
+                  <div 
+                    className="w-24 h-24 bg-white rounded-lg flex items-center justify-center text-4xl flex-shrink-0 overflow-hidden border border-gray-200 cursor-pointer hover:ring-2 hover:ring-stone-400 transition-all"
+                    onClick={() => item.image_url && handleImageClick(item.image_url, item.name)}
+                  >
                     {item.image_url ? (
                       <img src={item.image_url} alt={item.name} className="w-full h-full object-cover rounded-lg" />
                     ) : (
-                      <span>👕</span>
+                      <span className="text-3xl">👕</span>
                     )}
                   </div>
                   <div>
-                    <h3 className="text-lg font-medium text-foreground">{item.name}</h3>
-                    <p className="text-sm text-stone-600 capitalize">{item.category}</p>
+                    <h3 className="text-xl font-medium text-foreground">{item.name}</h3>
+                    <p className="text-base text-slate-600 capitalize">{item.category}</p>
                   </div>
                 </div>
                 <button
@@ -166,6 +188,14 @@ export default function CategoryView({ category, onBack, onAddItem, onEditItem }
           )}
         </div>
       </div>
+
+      {/* Image Modal */}
+      <ImageModal
+        isOpen={modalImage.isOpen}
+        imageUrl={modalImage.imageUrl}
+        itemName={modalImage.itemName}
+        onClose={closeModal}
+      />
     </div>
   )
 }

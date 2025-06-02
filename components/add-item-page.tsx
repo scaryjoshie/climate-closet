@@ -135,7 +135,7 @@ export default function AddItemPage({ onBack, selectedCategory, onItemAdded }: A
                     glass-card rounded-2xl p-3 text-center transition-all duration-200
                     ${
                       category === cat.display
-                        ? "bg-stone-800 text-white shadow-inner transform scale-95"
+                        ? "selected shadow-inner transform scale-95"
                         : "hover:bg-stone-200 hover:transform hover:scale-105"
                     }
                   `}
@@ -172,7 +172,7 @@ export default function AddItemPage({ onBack, selectedCategory, onItemAdded }: A
             >
               {photoPreview ? (
                 <img
-                  src={photoPreview || "/placeholder.svg"}
+                  src={photoPreview}
                   alt="Item preview"
                   className="w-full h-full object-cover rounded-2xl"
                 />

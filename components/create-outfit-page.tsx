@@ -3,6 +3,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
 import { api } from "@/lib/api"
+import TextareaAutosize from 'react-textarea-autosize'
 
 interface CreateOutfitPageProps {
   onBack: () => void
@@ -59,11 +60,11 @@ export default function CreateOutfitPage({ onBack, onOutfitCreated, selectedDate
             onClick={() => onSelect(option.id)}
             className={`
               w-full glass-card rounded-2xl p-4 text-left transition-all duration-200
-              ${selected === option.id ? "bg-stone-800 text-white" : "hover:bg-white/40"}
+              ${selected === option.id ? "selected" : "hover:bg-white/40"}
             `}
           >
             <div className="font-medium">{option.label}</div>
-            <div className={`text-sm ${selected === option.id ? "text-gray-200" : "text-stone-600"}`}>
+            <div className={`text-sm ${selected === option.id ? "text-white/90" : "text-stone-600"}`}>
               {option.description}
             </div>
           </button>
@@ -92,11 +93,11 @@ export default function CreateOutfitPage({ onBack, onOutfitCreated, selectedDate
             onClick={() => onToggle(option.id)}
             className={`
               w-full glass-card rounded-2xl p-4 text-left transition-all duration-200
-              ${selected.includes(option.id) ? "bg-stone-800 text-white" : "hover:bg-white/40"}
+              ${selected.includes(option.id) ? "selected" : "hover:bg-white/40"}
             `}
           >
             <div className="font-medium">{option.label}</div>
-            <div className={`text-sm ${selected.includes(option.id) ? "text-gray-200" : "text-stone-600"}`}>
+            <div className={`text-sm ${selected.includes(option.id) ? "text-white/90" : "text-stone-600"}`}>
               {option.description}
             </div>
           </button>
@@ -216,11 +217,13 @@ export default function CreateOutfitPage({ onBack, onOutfitCreated, selectedDate
           {/* Extra Notes */}
           <div className="mb-6">
             <h3 className="font-serif text-lg text-foreground mb-3 tracking-wide">Extra Notes (Optional)</h3>
-            <textarea
+            <TextareaAutosize
               value={extraNotes}
               onChange={(e) => setExtraNotes(e.target.value)}
               placeholder="Any specific preferences or requirements..."
-              className="w-full h-24 p-4 glass-card rounded-2xl border-0 focus:outline-none focus:ring-2 focus:ring-stone-400 placeholder-stone-500 resize-none"
+              className="w-full p-4 glass-card rounded-2xl border-0 focus:outline-none focus:ring-2 focus:ring-stone-400 placeholder-stone-500 resize-none"
+              minRows={4}
+              maxRows={15}
             />
           </div>
 

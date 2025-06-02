@@ -13,6 +13,7 @@ import AddItemPage from "./components/add-item-page"
 import ItemEditPage from "./components/item-edit-page"
 import ItemAnalysisPage from "./components/item-analysis-page"
 import RainEffect from "./components/rain-effect"
+import ImageModal from "./components/image-modal"
 import { useAuth } from "./contexts/auth-context"
 import AuthScreen from "./components/auth-screen"
 import { api } from "./lib/api"
@@ -25,6 +26,13 @@ export default function WeatherApp() {
   const [selectedItem, setSelectedItem] = useState<any>(null)
   const [analysisData, setAnalysisData] = useState<any>(null)
   const [analyticsRefreshTrigger, setAnalyticsRefreshTrigger] = useState(0)
+
+  // Image modal state
+  const [modalImage, setModalImage] = useState<{isOpen: boolean, imageUrl: string, itemName: string}>({
+    isOpen: false,
+    imageUrl: "",
+    itemName: ""
+  })
 
   const { isAuthenticated, signOut, isLoading: authLoading } = useAuth()
   const [weatherData, setWeatherData] = useState<any>(null)
@@ -323,6 +331,16 @@ export default function WeatherApp() {
     setCurrentPage("wardrobe")
   }
 
+  const handleImageClick = (imageUrl: string, itemName: string) => {
+    if (imageUrl && imageUrl.startsWith('data:')) { // Only open modal for actual images
+      setModalImage({ isOpen: true, imageUrl, itemName })
+    }
+  }
+
+  const closeModal = () => {
+    setModalImage({ isOpen: false, imageUrl: "", itemName: "" })
+  }
+
   const renderPage = () => {
     if (currentPage === "outfit" && selectedDate) {
       return <OutfitDisplay date={selectedDate} onBack={() => setCurrentPage("calendar")} />
@@ -447,7 +465,10 @@ export default function WeatherApp() {
                       <div className="space-y-3">
                         {todaysOutfit.items.map((item: any, index: number) => (
                           <div key={index} className="flex items-center space-x-4">
-                            <div className="w-16 h-16 bg-white rounded-lg flex items-center justify-center text-3xl flex-shrink-0 overflow-hidden border border-gray-200">
+                            <div 
+                              className="w-20 h-20 bg-white rounded-lg flex items-center justify-center text-3xl flex-shrink-0 overflow-hidden border border-gray-200 cursor-pointer hover:ring-2 hover:ring-stone-400 transition-all"
+                              onClick={() => item.image && handleImageClick(item.image, item.name)}
+                            >
                               {item.image && item.image.startsWith('data:') ? (
                                 <img src={item.image} alt={item.name} className="w-full h-full object-cover rounded-lg" />
                               ) : (
@@ -480,18 +501,18 @@ export default function WeatherApp() {
                 <div className="px-4 pb-6">
                   <div className="glass-card rounded-2xl">
                     <div className="p-5">
-                      <h3 className="box-title text-lg mb-3 tracking-wide">Today</h3>
+                      <h3 className="box-title text-lg mb-4 tracking-wide">Today</h3>
                       <div className="overflow-x-auto scrollbar-hide">
-                        <div className="flex gap-1 pb-2 min-w-max">
+                        <div className="flex gap-2 pb-2 min-w-max">
                           {hourlyForecast.map((hour: any, index: number) => (
                             <div
                               key={index}
-                              className="flex flex-col items-center min-w-[55px] space-y-0.5 flex-shrink-0"
+                              className="flex flex-col items-center min-w-[70px] space-y-1 flex-shrink-0"
                             >
-                              <span className="cozy-secondary text-sm font-light">{hour.time}</span>
-                              <hour.icon className={`w-6 h-6 ${hour.color} stroke-1`} />
-                              <span className="sophisticated-body text-base font-light">{hour.temp}°</span>
-                              <span className="warm-muted text-xs font-light">{hour.precipitation}%</span>
+                              <span className="cozy-secondary text-base font-medium">{hour.time}</span>
+                              <hour.icon className={`w-8 h-8 ${hour.color} stroke-1`} />
+                              <span className="sophisticated-body text-lg font-medium">{hour.temp}°</span>
+                              <span className="warm-muted text-sm font-light">{hour.precipitation}%</span>
                             </div>
                           ))}
                         </div>
@@ -504,19 +525,19 @@ export default function WeatherApp() {
                 <div className="px-4 pb-32">
                   <div className="glass-card rounded-2xl">
                     <div className="p-5">
-                      <h3 className="box-title text-lg mb-3 tracking-wide">This Week</h3>
+                      <h3 className="box-title text-lg mb-4 tracking-wide">This Week</h3>
                       <div className="overflow-x-auto scrollbar-hide">
-                        <div className="flex gap-1 pb-2 min-w-max">
+                        <div className="flex gap-2 pb-2 min-w-max">
                           {weeklyForecast.map((day: any, index: number) => (
                             <div
                               key={index}
-                              className="flex flex-col items-center min-w-[65px] space-y-0.5 flex-shrink-0"
+                              className="flex flex-col items-center min-w-[80px] space-y-1 flex-shrink-0"
                             >
-                              <span className="cozy-secondary text-sm font-light">{day.day}</span>
-                              <day.icon className={`w-6 h-6 ${day.color} stroke-1`} />
+                              <span className="cozy-secondary text-base font-medium">{day.day}</span>
+                              <day.icon className={`w-8 h-8 ${day.color} stroke-1`} />
                               <div className="text-center space-y-0">
-                                <div className="sophisticated-body text-base font-light">{day.high}°</div>
-                                <div className="cozy-secondary text-sm font-light">{day.low}°</div>
+                                <div className="sophisticated-body text-lg font-medium">{day.high}°</div>
+                                <div className="cozy-secondary text-base font-light">{day.low}°</div>
                               </div>
                             </div>
                           ))}
@@ -565,6 +586,14 @@ export default function WeatherApp() {
 
       {/* Install Prompt */}
       <InstallPrompt />
+
+      {/* Image Modal */}
+      <ImageModal
+        isOpen={modalImage.isOpen}
+        imageUrl={modalImage.imageUrl}
+        itemName={modalImage.itemName}
+        onClose={closeModal}
+      />
     </div>
   )
 }

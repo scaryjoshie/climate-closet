@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button"
 import { ArrowLeft, Save, Trash2, Camera } from "lucide-react"
 import { api } from "@/lib/api"
 import { compressImage, shouldCompressImage, getImageSizeInfo } from "@/lib/image-utils"
+import TextareaAutosize from 'react-textarea-autosize'
+import ImageModal from "./image-modal"
 
 interface ItemEditPageProps {
   onBack: () => void
@@ -42,6 +44,13 @@ export default function ItemEditPage({ onBack, item }: ItemEditPageProps) {
   const [windWeather, setWindWeather] = useState(3)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [photoPreview, setPhotoPreview] = useState<string | null>(null)
+
+  // Image modal state
+  const [modalImage, setModalImage] = useState<{isOpen: boolean, imageUrl: string, itemName: string}>({
+    isOpen: false,
+    imageUrl: "",
+    itemName: ""
+  })
 
   const categories = [
     { display: "Sweaters & Hoodies", api: "sweater" },
@@ -212,6 +221,16 @@ export default function ItemEditPage({ onBack, item }: ItemEditPageProps) {
     }
   }
 
+  const handleImageClick = () => {
+    if (photoPreview && !photoPreview.includes('👕')) { // Only open modal for actual images, not emoji placeholders
+      setModalImage({ isOpen: true, imageUrl: photoPreview, itemName: name || item.name })
+    }
+  }
+
+  const closeModal = () => {
+    setModalImage({ isOpen: false, imageUrl: "", itemName: "" })
+  }
+
   if (showDeleteConfirm) {
     return (
       <div className="max-w-sm mx-auto">
@@ -228,7 +247,7 @@ export default function ItemEditPage({ onBack, item }: ItemEditPageProps) {
             <div className="w-20 h-20 bg-stone-100 rounded-lg flex items-center justify-center text-4xl mx-auto mb-4 overflow-hidden">
               {photoPreview ? (
                 <img
-                  src={photoPreview || "/placeholder.svg"}
+                  src={photoPreview}
                   alt="Item"
                   className="w-full h-full object-cover rounded-lg"
                 />
@@ -275,28 +294,28 @@ export default function ItemEditPage({ onBack, item }: ItemEditPageProps) {
 
         <h1 className="box-title text-3xl text-center mb-4">Edit Item</h1>
 
-        {/* Item Preview with Camera */}
-        <div className="glass-card rounded-3xl p-4 mb-6 flex items-center space-x-4">
-          <div className="w-20 h-20 bg-stone-100 rounded-lg flex items-center justify-center overflow-hidden">
+        {/* Item Preview - Full Width Image */}
+        <div className="mb-6">
+          <div 
+            className="w-full h-64 bg-white rounded-2xl flex items-center justify-center overflow-hidden border border-gray-200 mb-4 shadow-sm cursor-pointer hover:ring-2 hover:ring-stone-400 transition-all"
+            onClick={handleImageClick}
+          >
             {photoPreview ? (
               <img
-                src={photoPreview || "/placeholder.svg"}
+                src={photoPreview}
                 alt="Item"
-                className="w-full h-full object-cover rounded-lg"
+                className="w-full h-full object-cover rounded-2xl"
               />
             ) : (
-              <span className="text-4xl">{item.image_url}</span>
+              <span className="text-8xl">{item.image_url}</span>
             )}
-          </div>
-          <div className="flex-1">
-            <h3 className="text-lg font-medium text-foreground">{item.name}</h3>
-            <p className="text-sm text-stone-600">{item.description}</p>
           </div>
           <button
             onClick={handleTakePhoto}
-            className="p-3 rounded-2xl bg-stone-200 hover:bg-stone-300 transition-colors duration-200"
+            className="w-full px-6 py-3 rounded-2xl bg-stone-200 hover:bg-stone-300 transition-colors duration-200 flex items-center justify-center space-x-2"
           >
             <Camera className="w-5 h-5 text-slate-600" />
+            <span className="text-sm font-medium text-slate-600">Update Photo</span>
           </button>
         </div>
 
@@ -316,12 +335,13 @@ export default function ItemEditPage({ onBack, item }: ItemEditPageProps) {
           {/* Description */}
           <div>
             <h3 className="font-serif text-lg text-foreground mb-3 tracking-wide">Description</h3>
-            <input
-              type="text"
+            <TextareaAutosize
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Color, material, style..."
-              className="w-full p-4 glass-card rounded-2xl border-0 focus:outline-none focus:ring-2 focus:ring-stone-400 placeholder-stone-500"
+              className="w-full p-4 glass-card rounded-2xl border-0 focus:outline-none focus:ring-2 focus:ring-stone-400 placeholder-stone-500 resize-none"
+              minRows={3}
+              maxRows={10}
             />
           </div>
 
@@ -337,7 +357,7 @@ export default function ItemEditPage({ onBack, item }: ItemEditPageProps) {
   glass-card rounded-2xl p-3 text-center transition-all duration-200
   ${
     category === cat.display
-      ? "bg-stone-600 text-white shadow-inner transform scale-95"
+      ? "selected shadow-inner transform scale-95"
       : "hover:bg-stone-200 hover:transform hover:scale-105"
   }
 `}
@@ -387,6 +407,14 @@ export default function ItemEditPage({ onBack, item }: ItemEditPageProps) {
           </div>
         </div>
       </div>
+
+      {/* Image Modal */}
+      <ImageModal
+        isOpen={modalImage.isOpen}
+        imageUrl={modalImage.imageUrl}
+        itemName={modalImage.itemName}
+        onClose={closeModal}
+      />
     </div>
   )
 }

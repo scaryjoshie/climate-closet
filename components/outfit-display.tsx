@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button"
 import { ArrowLeft, Shuffle, ChevronDown, ChevronUp } from "lucide-react"
 import CircularGauge from "./circular-gauge"
 import { api } from "@/lib/api"
+import TextareaAutosize from 'react-textarea-autosize'
+import ImageModal from "./image-modal"
 
 interface OutfitDisplayProps {
   date: string
@@ -48,6 +50,13 @@ export default function OutfitDisplay({ date, onBack }: OutfitDisplayProps) {
   const [timeOut, setTimeOut] = useState<string[]>([]) // Changed to array for multiple selections
   const [occasion, setOccasion] = useState("")
   const [dayNotes, setDayNotes] = useState("")
+
+  // Image modal state
+  const [modalImage, setModalImage] = useState<{isOpen: boolean, imageUrl: string, itemName: string}>({
+    isOpen: false,
+    imageUrl: "",
+    itemName: ""
+  })
 
   // Load outfit data when component mounts
   useEffect(() => {
@@ -143,7 +152,7 @@ export default function OutfitDisplay({ date, onBack }: OutfitDisplayProps) {
       glass-card rounded-2xl p-3 text-left transition-all duration-200
       ${
         selected === option.id
-                  ? "bg-stone-600 text-white shadow-inner transform scale-95"
+                  ? "selected shadow-inner transform scale-95"
                   : "interactive-hover"
       }
     `}
@@ -182,7 +191,7 @@ export default function OutfitDisplay({ date, onBack }: OutfitDisplayProps) {
       glass-card rounded-2xl p-3 text-left transition-all duration-200
       ${
         selected.includes(option.id)
-          ? "bg-stone-600 text-white shadow-inner transform scale-95"
+          ? "selected shadow-inner transform scale-95"
           : "hover:bg-stone-200 hover:transform hover:scale-105"
       }
     `}
@@ -216,6 +225,16 @@ export default function OutfitDisplay({ date, onBack }: OutfitDisplayProps) {
   const handleReshuffle = () => {
     console.log("Reshuffling outfit...")
     // Handle outfit reshuffling
+  }
+
+  const handleImageClick = (imageUrl: string, itemName: string) => {
+    if (imageUrl && !imageUrl.includes('👕')) { // Only open modal for actual images, not emoji placeholders
+      setModalImage({ isOpen: true, imageUrl, itemName })
+    }
+  }
+
+  const closeModal = () => {
+    setModalImage({ isOpen: false, imageUrl: "", itemName: "" })
   }
 
   return (
@@ -261,7 +280,10 @@ export default function OutfitDisplay({ date, onBack }: OutfitDisplayProps) {
           <div className="space-y-6">
                 {outfit.clothing_items.map((item, index) => (
               <div key={index} className="flex items-center space-x-6">
-                <div className="w-24 h-24 bg-white rounded-lg flex items-center justify-center text-4xl flex-shrink-0 border border-gray-200">
+                <div 
+                  className="w-24 h-24 bg-white rounded-lg flex items-center justify-center text-4xl flex-shrink-0 border border-gray-200 cursor-pointer hover:ring-2 hover:ring-stone-400 transition-all"
+                  onClick={() => handleImageClick(item.image_url, item.name)}
+                >
                       {item.image_url ? (
                         <img
                           src={item.image_url}
@@ -309,7 +331,7 @@ export default function OutfitDisplay({ date, onBack }: OutfitDisplayProps) {
             onClick={() => setShowDayReview(!showDayReview)}
             className="w-full p-6 flex items-center justify-between"
           >
-            <h3 className="box-title text-lg tracking-wide">How was your day?</h3>
+            <h3 className="box-title text-lg tracking-wide">Your Day</h3>
             {showDayReview ? (
               <ChevronUp className="w-5 h-5 text-slate-600" />
             ) : (
@@ -343,11 +365,13 @@ export default function OutfitDisplay({ date, onBack }: OutfitDisplayProps) {
               {/* Extra Notes */}
               <div className="mb-4">
                 <h4 className="text-sm font-medium text-foreground mb-2">Extra Notes</h4>
-                <textarea
+                <TextareaAutosize
                   value={dayNotes}
                   onChange={(e) => setDayNotes(e.target.value)}
                   placeholder="How did the outfit work for your day?"
-                  className="w-full h-20 p-3 border border-slate-300 rounded-2xl resize-none focus:outline-none focus:ring-2 focus:ring-slate-400 text-sm"
+                  className="w-full p-3 border border-slate-300 rounded-2xl resize-none focus:outline-none focus:ring-2 focus:ring-slate-400 text-sm"
+                  minRows={4}
+                  maxRows={12}
                 />
               </div>
 
@@ -438,11 +462,13 @@ export default function OutfitDisplay({ date, onBack }: OutfitDisplayProps) {
               </div>
 
               {/* Feedback Text */}
-              <textarea
+              <TextareaAutosize
                 value={feedback}
                 onChange={(e) => setFeedback(e.target.value)}
                 placeholder="Tell us more about this outfit..."
-                className="w-full h-24 p-3 border border-slate-300 rounded-2xl resize-none focus:outline-none focus:ring-2 focus:ring-slate-400 text-sm mb-4"
+                className="w-full p-3 border border-slate-300 rounded-2xl resize-none focus:outline-none focus:ring-2 focus:ring-slate-400 text-sm mb-4"
+                minRows={5}
+                maxRows={12}
               />
 
               {/* Submit Button */}
@@ -464,6 +490,14 @@ export default function OutfitDisplay({ date, onBack }: OutfitDisplayProps) {
           )}
         </div>
       </div>
+
+      {/* Image Modal */}
+      <ImageModal
+        isOpen={modalImage.isOpen}
+        imageUrl={modalImage.imageUrl}
+        itemName={modalImage.itemName}
+        onClose={closeModal}
+      />
     </div>
   )
 }
