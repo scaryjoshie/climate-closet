@@ -365,5 +365,7 @@
     transform: scale(1.05);
     box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
     border-color: rgba(38, 38, 38, 0.6);
+    color: white !important;
+    font-weight: 600;
   }
 }
