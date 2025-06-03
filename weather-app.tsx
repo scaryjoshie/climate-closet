@@ -43,6 +43,7 @@ export default function WeatherApp() {
   const [todaysOutfit, setTodaysOutfit] = useState<any>(null)
   const [hasOutfitToday, setHasOutfitToday] = useState(false)
   const [outfitLoading, setOutfitLoading] = useState(true)
+  const [outfitRefreshTrigger, setOutfitRefreshTrigger] = useState(0)
 
   // Helper function to get current date in Chicago timezone (matches backend)
   const getChicagoDateString = () => {
@@ -108,43 +109,54 @@ export default function WeatherApp() {
     loadWeather()
   }, [])
 
-  // Load today's outfit
+  // Load today's outfit on initial mount
   useEffect(() => {
-    const loadTodaysOutfit = async () => {
-      try {
-        setOutfitLoading(true)
-        // Get today's date in Chicago timezone to match backend
-        const todayStr = getChicagoDateString()
-        
-        const result = await api.getOutfitByDate(todayStr)
-        
-        if (result.success && result.outfit) {
-          setTodaysOutfit({
-            items: result.outfit.clothing_items.map((item: any) => ({
-              name: item.name,
-              type: item.category,
-              image: item.image_url || "👕",
-            }))
-          })
-          setHasOutfitToday(true)
-        } else {
-          setHasOutfitToday(false)
-          setTodaysOutfit(null)
-        }
-      } catch (error) {
-        // Don't log errors for missing outfits - this is expected
-        if (error instanceof Error && !error.message.includes("No outfit found")) {
-          console.error("Error loading today's outfit:", error)
-        }
+    // Only load outfit if authenticated and not still loading auth
+    if (isAuthenticated && !authLoading) {
+      refreshTodaysOutfit()
+    }
+  }, [isAuthenticated, authLoading])
+
+  // Refresh today's outfit when triggered by updates
+  useEffect(() => {
+    if (outfitRefreshTrigger > 0 && isAuthenticated && !authLoading) {
+      refreshTodaysOutfit()
+    }
+  }, [outfitRefreshTrigger, isAuthenticated, authLoading])
+
+  // Function to refresh today's outfit
+  const refreshTodaysOutfit = async () => {
+    try {
+      setOutfitLoading(true)
+      // Get today's date in Chicago timezone to match backend
+      const todayStr = getChicagoDateString()
+      
+      const result = await api.getOutfitByDate(todayStr)
+      
+      if (result.success && result.outfit) {
+        setTodaysOutfit({
+          items: result.outfit.clothing_items.map((item: any) => ({
+            name: item.name,
+            type: item.category,
+            image: item.image_url || "👕",
+          }))
+        })
+        setHasOutfitToday(true)
+      } else {
         setHasOutfitToday(false)
         setTodaysOutfit(null)
-      } finally {
-        setOutfitLoading(false)
       }
+    } catch (error) {
+      // Don't log errors for missing outfits - this is expected
+      if (error instanceof Error && !error.message.includes("No outfit found")) {
+        console.error("Error loading today's outfit:", error)
+      }
+      setHasOutfitToday(false)
+      setTodaysOutfit(null)
+    } finally {
+      setOutfitLoading(false)
     }
-
-    loadTodaysOutfit()
-  }, [])
+  }
 
   // Show loading screen while checking authentication
   if (authLoading) {
@@ -239,6 +251,21 @@ export default function WeatherApp() {
       return array.findIndex((d: any) => d.day === day.day) === index;
     }) || []
 
+  const handleOutfitUpdated = () => {
+    // Check if we're looking at today's outfit and refresh if so
+    const todayStr = getChicagoDateString()
+    const chicagoTime = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Chicago" }))
+    const todayFormatted = `${chicagoTime.toLocaleDateString("en-US", { month: "long" })} ${chicagoTime.getDate()}, ${chicagoTime.getFullYear()}`
+    
+    if (selectedDate === todayFormatted) {
+      // Trigger refresh of today's outfit
+      setOutfitRefreshTrigger(prev => prev + 1)
+    }
+    
+    // Navigate back to calendar
+    setCurrentPage("calendar")
+  }
+
   const handleGoToOutfit = (date: string) => {
     setSelectedDate(date)
     setCurrentPage("outfit")
@@ -266,22 +293,10 @@ export default function WeatherApp() {
   }
 
   const handleOutfitCreated = async (date: string) => {
-    // Refresh today's outfit data
-    try {
-      const result = await api.getOutfitByDate(date)
-      
-      if (result.success && result.outfit) {
-        setTodaysOutfit({
-          items: result.outfit.clothing_items.map((item: any) => ({
-            name: item.name,
-            type: item.category,
-            image: item.image_url || "👕",
-          }))
-        })
-        setHasOutfitToday(true)
-      }
-    } catch (error) {
-      console.error("Error refreshing outfit:", error)
+    // Check if this is today's outfit and trigger refresh
+    const todayStr = getChicagoDateString()
+    if (date === todayStr) {
+      setOutfitRefreshTrigger(prev => prev + 1)
     }
     
     // Navigate to the created outfit
@@ -343,7 +358,7 @@ export default function WeatherApp() {
 
   const renderPage = () => {
     if (currentPage === "outfit" && selectedDate) {
-      return <OutfitDisplay date={selectedDate} onBack={() => setCurrentPage("calendar")} />
+      return <OutfitDisplay date={selectedDate} onBack={handleOutfitUpdated} />
     }
 
     if (currentPage === "category" && selectedCategory) {
@@ -597,3 +612,4 @@ export default function WeatherApp() {
     </div>
   )
 }
+

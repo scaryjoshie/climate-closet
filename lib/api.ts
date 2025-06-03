@@ -253,6 +253,18 @@ export class ClimateClosetAPI {
     })
     return this.handleResponse(response)
   }
+
+  // Update user preferences
+  async updateUserPreferences(preferences: any) {
+    if (!(await this.isAuthenticated())) throw new Error("Authentication required")
+
+    const response = await fetch(`${API_BASE_URL}/update_user_preferences`, {
+      method: "POST",
+      headers: await this.getAuthHeaders(),
+      body: JSON.stringify({ preferences }),
+    })
+    return this.handleResponse(response)
+  }
 }
 
 // Export singleton instance
