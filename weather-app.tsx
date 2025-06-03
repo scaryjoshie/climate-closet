@@ -124,37 +124,37 @@ export default function WeatherApp() {
 
   // Function to refresh today's outfit
   const refreshTodaysOutfit = async () => {
-    try {
-      setOutfitLoading(true)
+      try {
+        setOutfitLoading(true)
       // Get today's date in user's local timezone
       const todayStr = getLocalDateString()
-      
-      const result = await api.getOutfitByDate(todayStr)
-      
-      if (result.success && result.outfit) {
-        setTodaysOutfit({
-          items: result.outfit.clothing_items.map((item: any) => ({
-            name: item.name,
-            type: item.category,
-            image: item.image_url || "👕",
-          }))
-        })
-        setHasOutfitToday(true)
-      } else {
+        
+        const result = await api.getOutfitByDate(todayStr)
+        
+        if (result.success && result.outfit) {
+          setTodaysOutfit({
+            items: result.outfit.clothing_items.map((item: any) => ({
+              name: item.name,
+              type: item.category,
+              image: item.image_url || "👕",
+            }))
+          })
+          setHasOutfitToday(true)
+        } else {
+          setHasOutfitToday(false)
+          setTodaysOutfit(null)
+        }
+      } catch (error) {
+        // Don't log errors for missing outfits - this is expected
+        if (error instanceof Error && !error.message.includes("No outfit found")) {
+          console.error("Error loading today's outfit:", error)
+        }
         setHasOutfitToday(false)
         setTodaysOutfit(null)
+      } finally {
+        setOutfitLoading(false)
       }
-    } catch (error) {
-      // Don't log errors for missing outfits - this is expected
-      if (error instanceof Error && !error.message.includes("No outfit found")) {
-        console.error("Error loading today's outfit:", error)
-      }
-      setHasOutfitToday(false)
-      setTodaysOutfit(null)
-    } finally {
-      setOutfitLoading(false)
     }
-  }
 
   // Show loading screen while checking authentication
   if (authLoading) {

@@ -198,7 +198,7 @@ export default function ItemEditPage({ onBack, item }: ItemEditPageProps) {
       if (result.success) {
         console.log("Item updated successfully:", result)
         showToast({ message: "Item updated successfully!", type: "success" })
-        onBack()
+    onBack()
       } else {
         console.error("Failed to update item:", result.error)
         showToast({ message: "Failed to update item: " + (result.error || "Unknown error"), type: "error" })
@@ -216,7 +216,7 @@ export default function ItemEditPage({ onBack, item }: ItemEditPageProps) {
       if (result.success) {
         console.log("Item deleted successfully:", result)
         showToast({ message: "Item deleted successfully!", type: "success" })
-        onBack()
+    onBack()
       } else {
         console.error("Failed to delete item:", result.error)
         showToast({ message: "Failed to delete item: " + (result.error || "Unknown error"), type: "error" })

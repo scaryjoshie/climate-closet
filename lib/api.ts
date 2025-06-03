@@ -265,6 +265,23 @@ export class ClimateClosetAPI {
     })
     return this.handleResponse(response)
   }
+
+  // Submit outfit feedback
+  async submitOutfitFeedback(feedbackData: {
+    outfit_id: string
+    overall_rating: number
+    temp_feedback: number
+    feedback_notes?: string
+  }) {
+    if (!(await this.isAuthenticated())) throw new Error("Authentication required")
+
+    const response = await fetch(`${API_BASE_URL}/submit_outfit_feedback`, {
+      method: "POST",
+      headers: await this.getAuthHeaders(),
+      body: JSON.stringify(feedbackData),
+    })
+    return this.handleResponse(response)
+  }
 }
 
 // Export singleton instance

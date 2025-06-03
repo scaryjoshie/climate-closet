@@ -34,7 +34,8 @@ interface OutfitData {
   clothing_items: OutfitItem[]
   ai_reasoning?: string
   overall_rating?: number
-  temp_feedback?: string
+  temp_feedback?: number
+  feedback_notes?: string
 }
 
 export default function OutfitDisplay({ date, onBack }: OutfitDisplayProps) {
@@ -101,6 +102,25 @@ export default function OutfitDisplay({ date, onBack }: OutfitDisplayProps) {
           setTimeOut(result.outfit.times_of_day || [])
           setOccasion(result.outfit.occasion || "")
           setDayNotes(result.outfit.notes || "")
+          
+          // Pre-populate feedback data if it exists (only if not null)
+          if (result.outfit.overall_rating !== undefined && result.outfit.overall_rating !== null) {
+            setSelectedRating(result.outfit.overall_rating + 2) // Convert from -2/+2 to 0-4 scale
+          } else {
+            setSelectedRating(null) // No feedback provided yet
+          }
+          if (result.outfit.temp_feedback !== undefined && result.outfit.temp_feedback !== null) {
+            setTemperatureRating(result.outfit.temp_feedback + 2) // Convert from -2/+2 to 0-4 scale
+          } else {
+            setTemperatureRating(null) // No feedback provided yet
+          }
+          
+          // Set feedback notes from dedicated field
+          if (result.outfit.feedback_notes) {
+            setFeedback(result.outfit.feedback_notes)
+          } else {
+            setFeedback("") // No feedback notes yet
+          }
         } else {
           setError("No outfit found for this date")
         }
@@ -264,9 +284,41 @@ export default function OutfitDisplay({ date, onBack }: OutfitDisplayProps) {
     setTimeOut((prev) => (prev.includes(timeId) ? prev.filter((id) => id !== timeId) : [...prev, timeId]))
   }
 
-  const handleSubmitFeedback = () => {
-    console.log({ rating: selectedRating, temperatureRating, feedback })
-    // Handle feedback submission
+  const handleSubmitFeedback = async () => {
+    if (!outfit || selectedRating === null || temperatureRating === null) {
+      showToast({ message: "Please provide both overall and temperature ratings", type: "error" })
+      return
+    }
+    
+    try {
+      const feedbackData = {
+        outfit_id: outfit.id.toString(),
+        overall_rating: selectedRating,
+        temp_feedback: temperatureRating,
+        feedback_notes: feedback.trim() || undefined
+      }
+      
+      const result = await api.submitOutfitFeedback(feedbackData)
+      
+      if (result.success) {
+        showToast({ message: "Feedback submitted successfully!", type: "success" })
+        
+        // Update local outfit state to reflect the feedback
+        setOutfit(prev => prev ? {
+          ...prev,
+          overall_rating: selectedRating - 2, // Convert back to -2/+2 scale for storage
+          temp_feedback: temperatureRating - 2 // Convert back to -2/+2 scale for storage
+        } : null)
+        
+        // Optionally collapse the feedback section
+        setShowFeedback(false)
+      } else {
+        showToast({ message: "Failed to submit feedback: " + (result.error || "Unknown error"), type: "error" })
+      }
+    } catch (error) {
+      console.error("Error submitting feedback:", error)
+      showToast({ message: "Failed to submit feedback. Please try again.", type: "error" })
+    }
   }
 
   const handleDeleteOutfit = async () => {
