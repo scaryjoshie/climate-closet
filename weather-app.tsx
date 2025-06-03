@@ -45,14 +45,12 @@ export default function WeatherApp() {
   const [outfitLoading, setOutfitLoading] = useState(true)
   const [outfitRefreshTrigger, setOutfitRefreshTrigger] = useState(0)
 
-  // Helper function to get current date in Chicago timezone (matches backend)
-  const getChicagoDateString = () => {
+  // Helper function to get current date in user's local timezone  
+  const getLocalDateString = () => {
     const now = new Date()
-    // Convert to Chicago timezone (Central Time)
-    const chicagoTime = new Date(now.toLocaleString("en-US", { timeZone: "America/Chicago" }))
-    const year = chicagoTime.getFullYear()
-    const month = String(chicagoTime.getMonth() + 1).padStart(2, '0')
-    const day = String(chicagoTime.getDate()).padStart(2, '0')
+    const year = now.getFullYear()
+    const month = String(now.getMonth() + 1).padStart(2, '0')
+    const day = String(now.getDate()).padStart(2, '0')
     return `${year}-${month}-${day}`
   }
 
@@ -128,8 +126,8 @@ export default function WeatherApp() {
   const refreshTodaysOutfit = async () => {
     try {
       setOutfitLoading(true)
-      // Get today's date in Chicago timezone to match backend
-      const todayStr = getChicagoDateString()
+      // Get today's date in user's local timezone
+      const todayStr = getLocalDateString()
       
       const result = await api.getOutfitByDate(todayStr)
       
@@ -253,9 +251,9 @@ export default function WeatherApp() {
 
   const handleOutfitUpdated = () => {
     // Check if we're looking at today's outfit and refresh if so
-    const todayStr = getChicagoDateString()
-    const chicagoTime = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Chicago" }))
-    const todayFormatted = `${chicagoTime.toLocaleDateString("en-US", { month: "long" })} ${chicagoTime.getDate()}, ${chicagoTime.getFullYear()}`
+    const todayStr = getLocalDateString()
+    const today = new Date()
+    const todayFormatted = `${today.toLocaleDateString("en-US", { month: "long" })} ${today.getDate()}, ${today.getFullYear()}`
     
     if (selectedDate === todayFormatted) {
       // Trigger refresh of today's outfit
@@ -294,7 +292,7 @@ export default function WeatherApp() {
 
   const handleOutfitCreated = async (date: string) => {
     // Check if this is today's outfit and trigger refresh
-    const todayStr = getChicagoDateString()
+    const todayStr = getLocalDateString()
     if (date === todayStr) {
       setOutfitRefreshTrigger(prev => prev + 1)
     }
@@ -316,9 +314,9 @@ export default function WeatherApp() {
   }
 
   const handleSeeMore = () => {
-    // Get Chicago time for consistency with backend
-    const chicagoTime = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Chicago" }))
-    const todayString = `${chicagoTime.toLocaleDateString("en-US", { month: "long" })} ${chicagoTime.getDate()}, ${chicagoTime.getFullYear()}`
+    // Get current local time
+    const today = new Date()
+    const todayString = `${today.toLocaleDateString("en-US", { month: "long" })} ${today.getDate()}, ${today.getFullYear()}`
     setSelectedDate(todayString)
     setCurrentPage("outfit")
   }

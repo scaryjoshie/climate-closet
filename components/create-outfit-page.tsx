@@ -110,6 +110,15 @@ export default function CreateOutfitPage({ onBack, onOutfitCreated, selectedDate
     setTimeOut((prev) => (prev.includes(timeId) ? prev.filter((id) => id !== timeId) : [...prev, timeId]))
   }
 
+  // Helper function to get current date in user's local timezone
+  const getLocalDateString = () => {
+    const now = new Date()
+    const year = now.getFullYear()
+    const month = String(now.getMonth() + 1).padStart(2, '0')
+    const day = String(now.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
+  }
+
   const handleGenerateOutfit = async () => {
     if (!activityLevel || timeOut.length === 0 || !occasion) {
       setError("Please fill in all required fields")
@@ -120,8 +129,8 @@ export default function CreateOutfitPage({ onBack, onOutfitCreated, selectedDate
     setError(null)
 
     try {
-      // Use selected date if provided, otherwise use today's date
-      let outfitDate = new Date().toISOString().split("T")[0] // Default to today
+      // Use selected date if provided, otherwise use today's date in user's local timezone
+      let outfitDate = getLocalDateString() // Default to today in user's local timezone
       
       if (selectedDate) {
         try {
