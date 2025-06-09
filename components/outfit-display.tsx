@@ -190,8 +190,7 @@ export default function OutfitDisplay({ date, onBack }: OutfitDisplayProps) {
 
   const timeOptions = [
     { id: "morning", label: "Morning", description: "6 AM - 10 AM" },
-    { id: "late-morning", label: "Late Morning/Early Afternoon", description: "10 AM - 2 PM" },
-    { id: "late-afternoon", label: "Late Afternoon", description: "2 PM - 6 PM" },
+    { id: "afternoon", label: "Afternoon", description: "10 AM - 6 PM" },
     { id: "evening", label: "Evening", description: "6 PM - 10 PM" },
   ]
 
